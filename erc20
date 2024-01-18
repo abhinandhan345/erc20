@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract Token is ERC20 {
+    address public originator;
+    address public founder;
+    bool public isTokenEnabled;
+    bool public transferAmount;
+
+    modifier onlyOriginator() {
+        require(msg.sender == originator, "Only the originator can call this function");
+        _;
+    }
+
+    modifier onlyFounder() {
+        require(msg.sender == founder, "Only the founder can call this function");
+        _;
+    }
+
+    constructor() ERC20("Token", "Tkn") {
+        originator = msg.sender;
+        founder = msg.sender;
+        isTokenEnabled = false;
+        transferAmount = true;
+    }
+
+    function initializeToken() external {
+        require(transferAmount, "Amount transfer is disabled");
+        require(!isTokenEnabled, "Token already initialized");
+        _mint(originator, 100);
+        isTokenEnabled = true;
+    }
+
+    function mintTokens(address receiver, uint256 sendSum) external onlyOriginator {
+        _mint(receiver, sendSum);
+    }
+
+    function burnTokens(uint256 burnedSum) external {
+        _burn(msg.sender, burnedSum);
+    }
+
+    function transferTokens(address recipient, uint256 transferredSum) external {
+        _transfer(msg.sender, recipient, transferredSum);
+    }
+
+    function getBalanceOfAccount(address account) external view returns (uint256) {
+        return balanceOf(account);
+    }
+
+    function disableAmountTransfer() external onlyOriginator {
+        transferAmount = false;
+    }
+}
